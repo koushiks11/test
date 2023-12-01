@@ -1,0 +1,94 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Node MongoDB App</title>
+</head>
+<body>
+  <h1>Welcome to My Node MongoDB App</h1>
+
+  <!-- Form to Add a New Book -->
+  <h2>Add a New Book</h2>
+  <form id="addBookForm">
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="author">Author:</label>
+    <input type="text" id="author" name="author" required>
+
+    <label for="publishedYear">Published Year:</label>
+    <input type="number" id="publishedYear" name="publishedYear" required>
+
+    <button type="submit">Add Book</button>
+  </form>
+
+  <!-- Display Books -->
+  <h2>Books</h2>
+  <ul id="booksList"></ul>
+
+  <!-- Success Message -->
+  <div id="successMessage" style="color: green; margin-top: 10px;"></div>
+
+  <script>
+    // Fetch books from the server and display them
+    async function fetchAndDisplayBooks() {
+      const response = await fetch('/api/books');
+      const books = await response.json();
+      const booksList = document.getElementById('booksList');
+
+      // Clear existing list items
+      booksList.innerHTML = '';
+
+      // Populate the list with books
+      books.forEach(book => {
+        const li = document.createElement('li');
+        li.textContent = `${book.title} by ${book.author}, ${book.publishedYear}`;
+        booksList.appendChild(li);
+      });
+    }
+
+    // Add a new book to the server
+    async function addNewBook(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const publishedYear = document.getElementById('publishedYear').value;
+
+      const response = await fetch('/api/books', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, author, publishedYear }),
+      });
+
+      if (response.ok) {
+        // Book added successfully, fetch and display updated book list
+        fetchAndDisplayBooks();
+        // Show success message
+        document.getElementById('successMessage').textContent = 'Book added successfully!';
+        // Clear the success message after a few seconds
+        setTimeout(() => {
+          document.getElementById('successMessage').textContent = '';
+        }, 5000);
+      } else {
+        // Book failed to be added, show an error message
+        document.getElementById('successMessage').textContent = 'Failed to add book';
+        // Clear the error message after a few seconds
+        setTimeout(() => {
+          document.getElementById('successMessage').textContent = '';
+        }, 5000);
+      }
+    }
+
+    // Attach event listeners
+    document.getElementById('addBookForm').addEventListener('submit', addNewBook);
+
+    // Initial fetch and display of books
+    fetchAndDisplayBooks();
+  </script>
+</body>
+</html>
